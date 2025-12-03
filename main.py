@@ -1,13 +1,15 @@
-import sys
-import os
+"""
+Главный файл запуска игры
+"""
+
+import arcade
 from src.game import GameWindow
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 
 def main():
-    game = GameWindow()
-    game.setup()
-    game.run()
+    window = GameWindow()
+    window.setup()
+    arcade.run()
 
 
 if __name__ == "__main__":
