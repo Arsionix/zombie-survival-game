@@ -1,0 +1,26 @@
+"""
+Константы игры
+"""
+
+# Окно
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 700
+SCREEN_TITLE = "Zombie Survival"
+
+# Игрок
+PLAYER_SPEED = 4
+PLAYER_HEALTH = 100
+PLAYER_START_X = SCREEN_WIDTH // 2
+PLAYER_START_Y = SCREEN_HEIGHT // 2
+
+# Зомби
+ZOMBIE_SPEED = 1.5
+ZOMBIE_HEALTH = 30
+ZOMBIE_DAMAGE = 10
+
+# Цвета
+BACKGROUND_COLOR = (30, 30, 40)  # Тёмно-синий
+PLAYER_COLOR = (65, 105, 225)    # Royal Blue
+ZOMBIE_COLOR = (34, 139, 34)     # Forest Green
+BULLET_COLOR = (255, 215, 0)     # Gold
+UI_TEXT_COLOR = (255, 255, 255)  # Белый
