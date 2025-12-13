@@ -4,7 +4,7 @@
 
 import arcade
 import random
-from constants import (SCREEN_HEIGHT, SCREEN_WIDTH)
+from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH)
 from .zombie import Zombie
 
 SPAWN_MARGIN = 100
