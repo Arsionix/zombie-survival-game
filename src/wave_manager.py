@@ -72,9 +72,8 @@ class WaveManager:
         if self.current_wave >= 5:
             weights = [30, 25, 25, 20]
 
-        z_type = random.choices(self.types, weights=weights)[0]
+        z_type = random.choices(["normal", "fast", "tank", "toxic"], weights=weights)[0]
         zombie = Zombie(x, y, z_type, self.current_wave)
-        """Привязка ИИ к игроку"""
         zombie.ai = Zombie.AI(zombie, self.player)
         self.zombies.append(zombie)
         self.zombies_spawned += 1
@@ -87,7 +86,7 @@ class WaveManager:
         return points
 
     def draw_wave_screen(self):
-        """Отрисовка экрана между волнами"""
+        # Отрисовка экрана между волнами
         arcade.draw_rect_filled(arcade.rect.XYWH(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT),
                                 COLOR_WAVE_SCREEN)
         arcade.draw_text(f"ВОЛНА {self.current_wave}",
