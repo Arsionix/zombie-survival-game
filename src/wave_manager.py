@@ -14,6 +14,8 @@ COLOR_WAVE_SCREEN = arcade.color.BLACK
 class WaveManager:
     def __init__(self, player):
         self.player = player
+        self.upgrade_system = UpgradeSystem(player)
+        self.show_upgrade_menu = False
         self.current_wave = 0
         self.zombies = []
         self.zombies_to_spawn = 0
@@ -27,12 +29,11 @@ class WaveManager:
         self.types = ["normal", "fast", "tank", "toxic"]
         self.show_player = True
         self.wave_stats = {}
-        self.player_points = 0
-        self.improvements = []
 
     def start_next_wave(self):
         self.current_wave += 1
         self.wave_active = False
+        self.show_upgrade_menu = True
         self.wave_timer = 0
         self.zombies_to_spawn = 5 + self.current_wave * 2
         self.zombies_spawned = 0
@@ -50,6 +51,7 @@ class WaveManager:
             if self.wave_timer >= self.wave_start_delay:
                 self.wave_active = True
                 self.show_player = True
+                self.show_upgrade_menu = False
         else:
             self.spawn_timer += delta_time
             if self.spawn_timer >= self.spawn_interval and self.zombies_spawned < self.zombies_to_spawn:
@@ -58,8 +60,6 @@ class WaveManager:
 
             for zombie in self.zombies[:]:
                 zombie.update(delta_time)
-
-            self.update_wave_stats(delta_time)
 
             if self.zombies_spawned >= self.zombies_to_spawn and self.zombies_killed >= self.zombies_spawned:
                 self.start_next_wave()
@@ -96,7 +96,7 @@ class WaveManager:
             self.zombies.remove(zombie)
         points = zombie.on_death()
         self.zombies_killed += 1
-        self.player_points += points
+        self.upgrade_system.add_points(points)
         return points
 
     def draw_wave_screen(self):
@@ -112,46 +112,28 @@ class WaveManager:
         y_offset = -120
         arcade.draw_text(f"Урон: {self.wave_stats.get('total_damage', 0)}",
                          SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + y_offset,
-                         arcade.color.YELLOW, font_size=20, anchor_x="center")
+                         arcade.color.YELLOW, font_size=20, anchor_x="center", font_name="Impact")
         y_offset -= 30
         arcade.draw_text(f"Убийства: {self.wave_stats.get('kills', 0)}",
                          SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + y_offset,
-                         arcade.color.YELLOW, font_size=20, anchor_x="center")
+                         arcade.color.YELLOW, font_size=20, anchor_x="center", font_name="Impact")
         y_offset -= 30
         arcade.draw_text(f"Время: {self.wave_stats.get('time', 0):.1f} сек",
                          SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + y_offset,
-                         arcade.color.YELLOW, font_size=20, anchor_x="center")
-
-    def update_wave_stats(self, delta_time):
-        if self.wave_active:
-            self.wave_stats['time'] += delta_time
-
-    # Покупка улучшения
-    def buy_improvement(self, improvement_id, level):
-        IMPROVEMENTS = [
-            {'type': 'health', 'levels': [(20, 100), (40, 200), (60, 300)]},
-            {'type': 'speed', 'levels': [(10, 150), (20, 300), (30, 450)]},
-            {'type': 'damage', 'levels': [(15, 200), (30, 400), (50, 600)]},
-            {'type': 'weapon', 'description': 'улучшить оружие'},
-            {'type': 'special', 'description': 'особые способности'}
-        ]
-        imp = IMPROVEMENTS[improvement_id]
-        cost = imp['levels'][level][1]
-        if self.player_points >= cost:
-            self.player_points -= cost
-            print(f"Покупка совершена успешно!")
-        else:
-            print("Недостаточно очков для покупки.")
+                         arcade.color.YELLOW, font_size=20, anchor_x="center", font_name="Impact")
 
     def draw(self):
-        if not self.wave_active and self.wave_timer < self.wave_start_delay:
-            self.draw_wave_screen()
-        else:
+        if self.wave_active:
             for zombie in self.zombies:
                 zombie.draw()
-
-        if self.wave_active:
             arcade.draw_text(f"Волна: {self.current_wave}",
                              10, SCREEN_HEIGHT - 30, arcade.color.WHITE, 18, font_name="Impact")
             arcade.draw_text(f"Зомби: {self.zombies_spawned - self.zombies_killed}/{self.zombies_spawned}",
                              10, SCREEN_HEIGHT - 60, arcade.color.WHITE, 16, font_name="Impact")
+
+        elif not self.wave_active and self.wave_timer < self.wave_start_delay:
+            self.draw_wave_screen()
+
+        elif self.show_upgrade_menu:
+            self.upgrade_system.draw_upgrade_menu(50, SCREEN_HEIGHT - 100)
+            self.upgrade_system.draw_active_upgrades(50, SCREEN_HEIGHT - 200)
