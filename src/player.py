@@ -1,6 +1,7 @@
 import arcade
 import math
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from .bullet import Bullet
 
 
 class Player:
@@ -11,10 +12,15 @@ class Player:
         self.change_x = 0
         self.change_y = 0
         self.angle = 0
+        self.shoot_timer = 0
+        self.shoot_cooldown = 0.3
 
     def update(self):
         self.x += self.change_x
         self.y += self.change_y
+
+        if self.shoot_timer > 0:
+            self.shoot_timer -= 1/60
 
         if self.x < 20:
             self.x = 20
@@ -37,3 +43,10 @@ class Player:
         dx = mouse_x - self.x
         dy = mouse_y - self.y
         self.angle = math.degrees(math.atan2(dy, dx))
+
+    def shoot(self):
+        if self.shoot_timer <= 0:
+            bullet = Bullet(self.x, self.y, self.angle)
+            self.shoot_timer = self.shoot_cooldown
+            return bullet
+        return None
