@@ -8,6 +8,7 @@ class GameWindow(arcade.Window):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         arcade.set_background_color(BACKGROUND_COLOR)
         self.keys = {}
+        self.bullets = []
 
     def setup(self):
         self.player = Player()
@@ -15,6 +16,8 @@ class GameWindow(arcade.Window):
     def on_draw(self):
         self.clear()
         self.player.draw()
+        for bullet in self.bullets:
+            bullet.draw()
 
     def on_update(self, delta_time):
         self.player.change_x = 0
@@ -31,6 +34,11 @@ class GameWindow(arcade.Window):
 
         self.player.update()
 
+        for bullet in self.bullets[:]:
+            bullet.update()
+            if bullet.is_off_screen():
+                self.bullets.remove(bullet)
+
     def on_key_press(self, key, modifiers):
         self.keys[key] = True
 
@@ -39,3 +47,9 @@ class GameWindow(arcade.Window):
 
     def on_mouse_motion(self, x, y, dx, dy):
         self.player.rotate_to(x, y)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            bullet = self.player.shoot()
+            if bullet:
+                self.bullets.append(bullet)
