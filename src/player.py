@@ -1,52 +1,139 @@
 import arcade
 import math
+import enum
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from .bullet import Bullet
 
 
-class Player:
+class FaceDirection(enum.Enum):
+    LEFT = 0
+    RIGHT = 1
+
+
+class Player(arcade.Sprite):
+
     def __init__(self):
-        self.x = SCREEN_WIDTH // 2
-        self.y = SCREEN_HEIGHT // 2
-        self.speed = 5
-        self.change_x = 0
-        self.change_y = 0
-        self.angle = 0
-        self.shoot_timer = 0
-        self.shoot_cooldown = 0.3
+        """
+        Инициализирует игрока с начальными характеристиками и загружает текстуры.
+        """
+        super().__init__()
 
-    def update(self):
-        self.x += self.change_x
-        self.y += self.change_y
+        self.speed = 200
+        self.max_health = 100
+        self.health = self.max_health
+        self.health_bar_width = 50
 
-        if self.shoot_timer > 0:
-            self.shoot_timer -= 1/60
+        self.damage_multiplier = 1.0
+        self.fire_rate = 1.0
+        self.shoot_cooldown = 0.0
 
-        if self.x < 20:
-            self.x = 20
-        if self.x > SCREEN_WIDTH - 20:
-            self.x = SCREEN_WIDTH - 20
-        if self.y < 20:
-            self.y = 20
-        if self.y > SCREEN_HEIGHT - 20:
-            self.y = SCREEN_HEIGHT - 20
+        self.idle_texture = arcade.load_texture(
+            "assets/images/player/player_idle.png")
+        self.texture = self.idle_texture
 
-    def draw(self):
-        arcade.draw_rect_filled(arcade.rect.XYWH(
-            self.x, self.y, 40, 40), arcade.color.BLUE)
+        self.walk_textures = []
+        for i in range(0, 8):
+            texture = arcade.load_texture(
+                f"assets/images/player/player_walk{i}.png")
+            self.walk_textures.append(texture)
 
-        end_x = self.x + math.cos(math.radians(self.angle)) * 30
-        end_y = self.y + math.sin(math.radians(self.angle)) * 30
-        arcade.draw_line(self.x, self.y, end_x, end_y, arcade.color.YELLOW, 3)
+        self.current_texture = 0
+        self.texture_change_time = 0
+        self.texture_change_delay = 0.1
 
-    def rotate_to(self, mouse_x, mouse_y):
-        dx = mouse_x - self.x
-        dy = mouse_y - self.y
-        self.angle = math.degrees(math.atan2(dy, dx))
+        self.is_walking = False
+        self.face_direction = FaceDirection.RIGHT
 
-    def shoot(self):
-        if self.shoot_timer <= 0:
-            bullet = Bullet(self.x, self.y, self.angle)
-            self.shoot_timer = self.shoot_cooldown
-            return bullet
-        return None
+        self.center_x = SCREEN_WIDTH // 2
+        self.center_y = SCREEN_HEIGHT // 2
+
+    def draw_health_bar(self):
+        """Рисует полоску здоровья над игроком."""
+        if self.health > 0:
+            health_percent = self.health / self.max_health
+            current_width = self.health_bar_width * health_percent
+
+            bar_x = self.center_x
+            bar_y = self.center_y - self.height / 2 - 10
+
+            arcade.draw_rect_filled(
+                arcade.XYWH(bar_x, bar_y, self.health_bar_width, 6),
+                arcade.color.DARK_GRAY
+            )
+
+            health_color = arcade.color.RED
+            if health_percent > 0.5:
+                health_color = arcade.color.ORANGE
+            if health_percent > 0.75:
+                health_color = arcade.color.GREEN
+
+            arcade.draw_rect_filled(
+                arcade.XYWH(bar_x, bar_y, current_width, 6),
+                health_color
+            )
+
+            arcade.draw_rect_outline(
+                arcade.XYWH(bar_x, bar_y, self.health_bar_width, 6),
+                arcade.color.BLACK, 1
+            )
+
+    def update_animation(self, delta_time: float = 1/60):
+        """Обновляет анимацию игрока в зависимости от движения."""
+        if self.is_walking:
+            self.texture_change_time += delta_time
+            if self.texture_change_time >= self.texture_change_delay:
+                self.texture_change_time = 0
+                self.current_texture += 1
+                if self.current_texture >= len(self.walk_textures):
+                    self.current_texture = 0
+                if self.face_direction == FaceDirection.RIGHT:
+                    self.texture = self.walk_textures[self.current_texture]
+                else:
+                    self.texture = self.walk_textures[self.current_texture].flip_horizontally(
+                    )
+
+        else:
+            if self.face_direction == FaceDirection.RIGHT:
+                self.texture = self.idle_texture
+            else:
+                self.texture = self.idle_texture.flip_horizontally()
+
+    def update(self, delta_time, keys_pressed):
+        """
+        Обновляет позицию и состояние игрока.
+
+        Параметры:
+            delta_time: Время с предыдущего обновления
+            keys_pressed: Множество нажатых клавиш
+        """
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= delta_time
+
+        dx, dy = 0, 0
+        if arcade.key.LEFT in keys_pressed or arcade.key.A in keys_pressed:
+            dx -= self.speed * delta_time
+        if arcade.key.RIGHT in keys_pressed or arcade.key.D in keys_pressed:
+            dx += self.speed * delta_time
+        if arcade.key.UP in keys_pressed or arcade.key.W in keys_pressed:
+            dy += self.speed * delta_time
+        if arcade.key.DOWN in keys_pressed or arcade.key.S in keys_pressed:
+            dy -= self.speed * delta_time
+
+        if dx != 0 and dy != 0:
+            factor = 0.7071
+            dx *= factor
+            dy *= factor
+
+        self.center_x += dx
+        self.center_y += dy
+
+        if dx < 0:
+            self.face_direction = FaceDirection.LEFT
+        elif dx > 0:
+            self.face_direction = FaceDirection.RIGHT
+
+        self.center_x = max(
+            self.width/2, min(SCREEN_WIDTH - self.width/2, self.center_x))
+        self.center_y = max(
+            self.height/2, min(SCREEN_HEIGHT - self.height/2, self.center_y))
+
+        self.is_walking = dx or dy
