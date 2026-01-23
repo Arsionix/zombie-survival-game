@@ -130,9 +130,6 @@ class MenuView(arcade.View):
     def start_game(self, event):
         """
         Обрабатывает нажатие кнопки начала игры.
-
-        Параметры:
-            event: Событие клика
         """
         from .game import GameView
         self.uimanager.disable()
@@ -142,9 +139,6 @@ class MenuView(arcade.View):
     def wins_view(self, event):
         """
         Обрабатывает нажатие кнопки просмотра рекордов.
-
-        Параметры:
-            event: Событие клика
         """
         self.uimanager.disable()
         records_view = RecordsView()
@@ -153,9 +147,6 @@ class MenuView(arcade.View):
     def settings_window(self, event):
         """
         Обрабатывает нажатие кнопки настроек.
-
-        Параметры:
-            event: Событие клика
         """
         self.uimanager.disable()
         settings_view = SettingView(previous_view=self)
@@ -164,9 +155,6 @@ class MenuView(arcade.View):
     def exit_action(self, event):
         """
         Обрабатывает нажатие кнопки выхода из игры.
-
-        Параметры:
-            event: Событие клика
         """
         arcade.close_window()
 
@@ -175,9 +163,6 @@ class SettingView(arcade.View):
     def __init__(self, previous_view):
         """
         Инициализирует экран настроек.
-
-        Параметры:
-            previous_view: Предыдущий экран для возврата
         """
         super().__init__()
         self.previous_view = previous_view
@@ -234,9 +219,6 @@ class SettingView(arcade.View):
     def on_back_click(self, event):
         """
         Обрабатывает нажатие кнопки возврата.
-
-        Параметры:
-            event: Событие клика
         """
         self.uimanager.disable()
         self.window.show_view(self.previous_view)
@@ -244,9 +226,6 @@ class SettingView(arcade.View):
     def on_save_click(self, event):
         """
         Обрабатывает нажатие кнопки сохранения настроек.
-
-        Параметры:
-            event: Событие клика
         """
         print("Настройки сохранены!")
 
@@ -339,9 +318,6 @@ class RecordsView(arcade.View):
     def on_back_click(self, event):
         """
         Обрабатывает нажатие кнопки возврата.
-
-        Параметры:
-            event: Событие клика
         """
         self.uimanager.disable()
         from .ui import MenuView
@@ -453,9 +429,6 @@ class GameOverView(arcade.View):
     def start_game_again(self, event):
         """
         Обрабатывает нажатие кнопки начала новой игры.
-
-        Параметры:
-            event: Событие клика
         """
         self.uimanager.disable()
         from .game import GameView
@@ -465,9 +438,6 @@ class GameOverView(arcade.View):
     def back_to_main_menu(self, event):
         """
         Обрабатывает нажатие кнопки возврата в главное меню.
-
-        Параметры:
-            event: Событие клика
         """
         self.uimanager.disable()
         main_menu_view = MenuView()
