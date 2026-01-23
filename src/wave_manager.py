@@ -14,12 +14,6 @@ COLOR_WAVE_SCREEN = arcade.color.BLACK
 
 class WaveManager:
     def __init__(self, player):
-        """
-        Инициализирует менеджер волн.
-
-        Параметры:
-            player: Объект игрока
-        """
         self.player = player
         self.upgrade_system = UpgradeSystem(player)
         self.show_upgrade_menu = False
@@ -46,23 +40,12 @@ class WaveManager:
         self.wave_screen_timer = 0
 
     def on_mouse_press(self, x, y, button):
-        """
-        Обрабатывает клики мыши в меню улучшений.
-
-        Параметры:
-            x: Координата X клика
-            y: Координата Y клика
-            button: Нажатая кнопка мыши
-        """
         if self.show_upgrade_menu and button == arcade.MOUSE_BUTTON_LEFT:
             if self.upgrade_system.handle_mouse_click(x, y):
                 self.show_upgrade_hint = True
                 self.upgrade_hint_timer = 2.0
 
     def start_next_wave(self):
-        """
-        Начинает следующую волну зомби.
-        """
         self.previous_wave_stats = self.wave_stats.copy()
 
         self.current_wave += 1
@@ -89,12 +72,6 @@ class WaveManager:
         }
 
     def update(self, delta_time):
-        """
-        Обновляет состояние менеджера волн.
-
-        Параметры:
-            delta_time: Время, прошедшее с предыдущего обновления
-        """
         if self.show_wave_screen:
             self.wave_screen_timer -= delta_time
             if self.wave_screen_timer <= 0:
@@ -140,7 +117,7 @@ class WaveManager:
 
     def spawn_zombie(self):
         """
-        Создает нового зомби на случайной стороне экрана.
+        Создает нового зомби на случайной стороне экрана
         """
         side = random.choice(["left", "right", "top", "bottom"])
         if side == "left":
@@ -169,15 +146,6 @@ class WaveManager:
         self.zombies_spawned += 1
 
     def kill_zombie(self, zombie):
-        """
-        Удаляет зомби и начисляет очки.
-
-        Параметры:
-            zombie: Объект зомби для удаления
-
-        Возвращает:
-            Количество очков за убийство
-        """
         if zombie in self.zombies:
             self.zombies.remove(zombie)
         points = zombie.on_death()
@@ -187,9 +155,6 @@ class WaveManager:
         return points
 
     def draw_wave_screen(self):
-        """
-        Отрисовывает экран с информацией о волне.
-        """
         arcade.draw_rect_filled(arcade.rect.XYWH(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT),
                                 arcade.color.BLACK)
 
@@ -216,9 +181,6 @@ class WaveManager:
                              arcade.color.YELLOW, font_size=20, anchor_x="center", font_name="Impact")
 
     def draw(self):
-        """
-        Отрисовывает все элементы менеджера волн.
-        """
         if self.show_wave_screen:
             self.draw_wave_screen()
 
