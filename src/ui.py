@@ -5,9 +5,6 @@ from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class MenuView(arcade.View):
     def __init__(self):
-        """
-        Инициализирует главное меню.
-        """
         super().__init__()
         self.background_texture = None
         self.uimanager = arcade.gui.UIManager()
@@ -106,73 +103,46 @@ class MenuView(arcade.View):
         exit_button.center_y = self.window.height - 40
 
     def on_show_view(self):
-        """
-        Вызывается при показе главного меню.
-        """
         self.uimanager.enable()
         arcade.set_background_color(arcade.color.DARK_GREEN)
 
     def on_hide_view(self):
-        """
-        Вызывается при скрытии главного меню.
-        """
         self.uimanager.disable()
 
     def on_draw(self):
-        """
-        Отрисовывает главное меню.
-        """
         self.clear()
         arcade.draw_texture_rect(arcade.load_texture("assets/images/ui/menu_background.jpg"),
                                  arcade.rect.XYWH(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT))
         self.uimanager.draw()
 
     def start_game(self, event):
-        """
-        Обрабатывает нажатие кнопки начала игры.
-        """
         from .game import GameView
         self.uimanager.disable()
         game_view = GameView()
         self.window.show_view(game_view)
 
     def wins_view(self, event):
-        """
-        Обрабатывает нажатие кнопки просмотра рекордов.
-        """
         self.uimanager.disable()
         records_view = RecordsView()
         self.window.show_view(records_view)
 
     def settings_window(self, event):
-        """
-        Обрабатывает нажатие кнопки настроек.
-        """
         self.uimanager.disable()
         settings_view = SettingView(previous_view=self)
         self.window.show_view(settings_view)
 
     def exit_action(self, event):
-        """
-        Обрабатывает нажатие кнопки выхода из игры.
-        """
         arcade.close_window()
 
 
 class SettingView(arcade.View):
     def __init__(self, previous_view):
-        """
-        Инициализирует экран настроек.
-        """
         super().__init__()
         self.previous_view = previous_view
         self.uimanager = arcade.gui.UIManager()
         self.setup()
 
     def setup(self):
-        """
-        Настраивает элементы интерфейса настроек.
-        """
         self.uimanager.clear()
 
         button_style = {
@@ -217,35 +187,20 @@ class SettingView(arcade.View):
         self.uimanager.add(save_button)
 
     def on_back_click(self, event):
-        """
-        Обрабатывает нажатие кнопки возврата.
-        """
         self.uimanager.disable()
         self.window.show_view(self.previous_view)
 
     def on_save_click(self, event):
-        """
-        Обрабатывает нажатие кнопки сохранения настроек.
-        """
         print("Настройки сохранены!")
 
     def on_show_view(self):
-        """
-        Вызывается при показе экрана настроек.
-        """
         arcade.set_background_color(arcade.color.DARK_GREEN)
         self.uimanager.enable()
 
     def on_hide_view(self):
-        """
-        Вызывается при скрытии экрана настроек.
-        """
         self.uimanager.disable()
 
     def on_draw(self):
-        """
-        Отрисовывает экран настроек.
-        """
         self.clear()
         arcade.draw_text("НАСТРОЙКИ", self.window.width // 2, self.window.height - 100,
                          arcade.color.BLACK, font_size=30, anchor_x="center", font_name="Impact")
@@ -256,17 +211,11 @@ class SettingView(arcade.View):
 
 class RecordsView(arcade.View):
     def __init__(self):
-        """
-        Инициализирует экран рекордов.
-        """
         super().__init__()
         self.uimanager = arcade.gui.UIManager()
         self.setup()
 
     def setup(self):
-        """
-        Настраивает элементы интерфейса экрана рекордов.
-        """
         self.uimanager.clear()
 
         button_style = {
@@ -303,31 +252,19 @@ class RecordsView(arcade.View):
         self.uimanager.add(back_button)
 
     def on_show_view(self):
-        """
-        Вызывается при показе экрана рекордов.
-        """
         self.uimanager.enable()
         arcade.set_background_color(arcade.color.DARK_BLUE)
 
     def on_hide_view(self):
-        """
-        Вызывается при скрытии экрана рекордов.
-        """
         self.uimanager.disable()
 
     def on_back_click(self, event):
-        """
-        Обрабатывает нажатие кнопки возврата.
-        """
         self.uimanager.disable()
         from .ui import MenuView
         menu_view = MenuView()
         self.window.show_view(menu_view)
 
     def on_draw(self):
-        """
-        Отрисовывает экран рекордов.
-        """
         self.clear()
         arcade.set_background_color(arcade.color.DARK_BLUE)
 
@@ -343,18 +280,12 @@ class RecordsView(arcade.View):
 
 class GameOverView(arcade.View):
     def __init__(self):
-        """
-        Инициализирует экран окончания игры.
-        """
         super().__init__()
         self.background_texture = None
         self.uimanager = arcade.gui.UIManager()
         self.setup()
 
     def setup(self):
-        """
-        Настраивает элементы интерфейса экрана окончания игры.
-        """
         button_style = {
             "normal": arcade.gui.UIFlatButton.UIStyle(
                 font_size=16,
@@ -400,21 +331,12 @@ class GameOverView(arcade.View):
         start_again_button.center_y = self.window.height // 2 - 80
 
     def on_show_view(self):
-        """
-        Вызывается при показе экрана окончания игры.
-        """
         self.uimanager.enable()
 
     def on_hide_view(self):
-        """
-        Вызывается при скрытии экрана окончания игры.
-        """
         self.uimanager.disable()
 
     def on_draw(self):
-        """
-        Отрисовывает экран окончания игры.
-        """
         self.clear()
         arcade.draw_rect_filled(arcade.rect.XYWH(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT),
                                 arcade.color.BLACK)
@@ -427,18 +349,12 @@ class GameOverView(arcade.View):
         self.uimanager.draw()
 
     def start_game_again(self, event):
-        """
-        Обрабатывает нажатие кнопки начала новой игры.
-        """
         self.uimanager.disable()
         from .game import GameView
         game_view = GameView()
         self.window.show_view(game_view)
 
     def back_to_main_menu(self, event):
-        """
-        Обрабатывает нажатие кнопки возврата в главное меню.
-        """
         self.uimanager.disable()
         main_menu_view = MenuView()
         self.window.show_view(main_menu_view)
