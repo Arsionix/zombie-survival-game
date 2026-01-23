@@ -11,15 +11,6 @@ from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
 class Zombie:
     class Stats:
         def __init__(self, health, speed, damage, points):
-            """
-            Инициализирует характеристики зомби.
-
-            Параметры:
-                health: Максимальное здоровье
-                speed: Скорость движения
-                damage: Наносимый урон
-                points: Очки за убийство
-            """
             self.max_health = health
             self.health = self.max_health
             self.speed = speed
@@ -28,23 +19,10 @@ class Zombie:
 
     class AI:
         def __init__(self, zombie, player):
-            """
-            Инициализирует ИИ для преследования игрока.
-
-            Параметры:
-                zombie: Объект зомби
-                player: Объект игрока для преследования
-            """
             self.zombie = zombie
             self.player = player
 
         def update(self, delta_time):
-            """
-            Обновляет движение зомби в направлении игрока.
-
-            Параметры:
-                delta_time: Время, прошедшее с предыдущего обновления
-            """
             dx = self.player.center_x - self.zombie.center_x
             dy = self.player.center_y - self.zombie.center_y
             distance = math.hypot(dx, dy)
@@ -55,15 +33,6 @@ class Zombie:
                 self.zombie.center_y += dy * self.zombie.stats.speed * delta_time
 
     def __init__(self, x, y, zombie_type="basic", wave=1):
-        """
-        Инициализирует зомби с заданными параметрами.
-
-        Параметры:
-            x: Начальная координата X
-            y: Начальная координата Y
-            zombie_type: Тип зомби (basic, fast, fat, toxic)
-            wave: Номер волны для масштабирования характеристик
-        """
         self.center_x = x
         self.center_y = y
         self.type = zombie_type
@@ -128,12 +97,6 @@ class Zombie:
             0.5 if zombie_type == "fat" else 120 * 0.5
 
     def update(self, delta_time):
-        """
-        Обновляет состояние зомби и анимацию.
-
-        Параметры:
-            delta_time: Время, прошедшее с предыдущего обновления
-        """
         self.ai.update(delta_time)
 
         self.animation_time += delta_time
@@ -142,9 +105,6 @@ class Zombie:
             self.animation_time = 0
 
     def draw(self):
-        """
-        Отрисовывает зомби и его полоску здоровья.
-        """
         if not self.frames:
             return
 
@@ -191,23 +151,8 @@ class Zombie:
             )
 
     def take_damage(self, damage):
-        """
-        Наносит урон зомби.
-
-        Параметры:
-            damage: Количество наносимого урона
-
-        Возвращает:
-            True если зомби убит, False в противном случае
-        """
         self.stats.health -= damage
         return self.stats.health <= 0
 
     def on_death(self):
-        """
-        Обрабатывает смерть зомби.
-
-        Возвращает:
-            Количество очков за убийство зомби
-        """
         return self.stats.points
