@@ -8,9 +8,6 @@ from .constants import SCREEN_HEIGHT
 
 class UpgradeSystem:
     def __init__(self, player):
-        """
-        Инициализирует систему улучшений.
-        """
         self.player = player
         self.points = 0
 
@@ -50,9 +47,6 @@ class UpgradeSystem:
                          arcade.color.WHITE, 16, font_name="Impact")
 
     def handle_mouse_click(self, x, y):
-        """
-        Обрабатывает клик мыши в меню улучшений
-        """
         menu_x = 50
         menu_y = SCREEN_HEIGHT - 100
 
@@ -82,9 +76,6 @@ class UpgradeSystem:
         return False
 
     def can_buy(self, upgrade_type):
-        """
-        Проверяет, можно ли купить улучшение.
-        """
         level = self.active_upgrades[upgrade_type]
         if level >= len(self.upgrade_config[upgrade_type][1]):
             return False
@@ -92,9 +83,6 @@ class UpgradeSystem:
         return self.points >= cost
 
     def buy(self, upgrade_type):
-        """
-        Покупает улучшение
-        """
         if not self.can_buy(upgrade_type):
             return False
 
@@ -114,9 +102,6 @@ class UpgradeSystem:
         return True
 
     def apply_effect(self, upgrade_type):
-        """
-        Применяет эффект улучшения к игроку
-        """
         level = self.active_upgrades[upgrade_type]
         bonus_pct, _ = self.upgrade_config[upgrade_type][1][level - 1]
 
@@ -153,9 +138,6 @@ class UpgradeSystem:
         return active_upgrades
 
     def draw_active_upgrades(self, x, y):
-        """
-        Отрисовывает активные улучшения
-        """
         arcade.draw_text("АКТИВНЫЕ УЛУЧШЕНИЯ:", x, y,
                          arcade.color.YELLOW, 16, font_name="Impact")
         y_offset = 20
