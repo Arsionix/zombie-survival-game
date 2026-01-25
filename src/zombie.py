@@ -1,158 +1,106 @@
-"""
-Класс зомби, с их спавном с помощью AI и их характеристиками
-"""
-
 import arcade
 import math
-import random
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
-class Zombie:
-    class Stats:
-        def __init__(self, health, speed, damage, points):
-            self.max_health = health
-            self.health = self.max_health
-            self.speed = speed
-            self.damage = damage
-            self.points = points
-
-    class AI:
-        def __init__(self, zombie, player):
-            self.zombie = zombie
-            self.player = player
-
-        def update(self, delta_time):
-            dx = self.player.center_x - self.zombie.center_x
-            dy = self.player.center_y - self.zombie.center_y
-            distance = math.hypot(dx, dy)
-            if distance > 0:
-                dx /= distance
-                dy /= distance
-                self.zombie.center_x += dx * self.zombie.stats.speed * delta_time
-                self.zombie.center_y += dy * self.zombie.stats.speed * delta_time
-
+class Zombie(arcade.Sprite):
     def __init__(self, x, y, zombie_type="basic", wave=1):
+        super().__init__()
+
         self.center_x = x
         self.center_y = y
         self.type = zombie_type
 
-        self.frames = []
-
-        frame_counts = {
-            "basic": 16,
-            "fast": 13,
-            "fat": 8,
-            "toxic": 8
-        }
-
+        frame_counts = {"basic": 16, "fast": 13, "fat": 8}
         frame_count = frame_counts.get(zombie_type, 4)
-
+        self.textures = []
         for i in range(frame_count):
-            if zombie_type == "basic":
-                file_name = f"basic_zombie_{i}.png"
-                folder = "basic"
-            elif zombie_type == "fast":
-                file_name = f"fast_zombie_{i}.png"
-                folder = "fast"
-            elif zombie_type == "fat":
-                file_name = f"fat_zombie_{i}.png"
-                folder = "fat"
-            elif zombie_type == "toxic":
-                file_name = f"toxic_zombie_{i}.png"
-                folder = "toxic"
-            else:
-                file_name = f"basic_zombie_{i}.png"
-                folder = "basic"
+            path = f"assets/images/zombies/{zombie_type}/{zombie_type}_zombie_{i}.png"
+            self.textures.append(arcade.load_texture(path))
 
-            path = f"assets/images/zombies/{folder}/{file_name}"
-            texture = arcade.load_texture(path)
-            self.frames.append(texture)
-
-        self.health_bar_width = 40
-
+        self.set_texture(0)
         self.current_frame = 0
-        self.animation_time = 0
+        self.animation_timer = 0
         self.animation_speed = 0.1
 
-        base_health = {"basic": 50, "fast": 30,
-                       "fat": 150, "toxic": 40}[zombie_type]
-        base_speed = {"basic": 50, "fast": 100,
-                      "fat": 30, "toxic": 70}[zombie_type]
-        damage = {"basic": 10, "fast": 12,
-                  "fat": 20, "toxic": 8}[zombie_type]
-        points = {"basic": 10, "fast": 20,
-                  "fat": 30, "toxic": 25}[zombie_type]
+        sizes = {
+            "basic": (60 * 0.5, 89 * 0.5),
+            "fast": (45 * 0.5, 75 * 0.5),
+            "fat": (85 * 0.5, 170 * 0.5)
+        }
+        self.custom_width, self.custom_height = sizes.get(
+            zombie_type, (60 * 0.5, 89 * 0.5))
 
-        health = int(base_health * (1 + (wave - 1) * 0.2))
-        self.stats = self.Stats(
-            health=health, speed=base_speed, damage=damage, points=points)
+        base_width = self.textures[0].width if self.textures else 60
+        self.scale = self.custom_width / base_width
 
-        self.ai = self.AI(self, None)
+        base_health = {"basic": 50, "fast": 30, "fat": 150}
+        base_speed = {"basic": 50, "fast": 100, "fat": 30}
+        damage = {"basic": 10, "fast": 12, "fat": 20}
+        points = {"basic": 10, "fast": 20, "fat": 30}
 
-        self.width = 60 * 0.5 if zombie_type == "basic" else 45 * \
-            0.5 if zombie_type == "fast" else 85 * 0.5 if zombie_type == "fat" else 65 * 0.5
-        self.height = 89 * 0.5 if zombie_type == "basic" else 75 * \
-            0.5 if zombie_type == "fast" else 170 * \
-            0.5 if zombie_type == "fat" else 120 * 0.5
+        health = int(base_health[zombie_type] * (1 + (wave - 1) * 0.2))
+        self.max_health = health
+        self.health = self.max_health
+        self.speed = base_speed[zombie_type]
+        self.damage = damage[zombie_type]
+        self.points = points[zombie_type]
+
+        self.player = None
+        self._facing_right = True
 
     def update(self, delta_time):
-        self.ai.update(delta_time)
+        if self.player:
+            dx = self.player.center_x - self.center_x
+            dy = self.player.center_y - self.center_y
+            dist = math.hypot(dx, dy)
+            if dist > 0:
+                self.center_x += (dx / dist) * self.speed * delta_time
+                self.center_y += (dy / dist) * self.speed * delta_time
 
-        self.animation_time += delta_time
-        if self.animation_time >= self.animation_speed:
-            self.current_frame = (self.current_frame + 1) % len(self.frames)
-            self.animation_time = 0
+                self._facing_right = dx >= 0
 
-    def draw(self):
-        if not self.frames:
-            return
-
-        dx = self.ai.player.center_x - self.center_x if self.ai and self.ai.player else 0
-        scale_x = self.width if dx >= 0 else -self.width
-
-        texture = self.frames[self.current_frame]
-        arcade.draw_texture_rect(
-            texture,
-            arcade.XYWH(
-                self.center_x,
-                self.center_y,
-                scale_x,
-                self.height
-            )
-        )
-
-        if self.stats.health > 0:
-            health_percent = self.stats.health / self.stats.max_health
-            current_width = self.health_bar_width * health_percent
-
-            arcade.draw_rect_filled(
-                arcade.XYWH(self.center_x, self.center_y +
-                            self.height / 2 + 10, self.health_bar_width, 6),
-                arcade.color.DARK_GRAY
-            )
-
-            health_color = arcade.color.RED
-            if health_percent > 0.5:
-                health_color = arcade.color.ORANGE
-            if health_percent > 0.75:
-                health_color = arcade.color.GREEN
-
-            arcade.draw_rect_filled(
-                arcade.XYWH(self.center_x, self.center_y +
-                            self.height / 2 + 10, current_width, 6),
-                health_color
-            )
-
-            arcade.draw_rect_outline(
-                arcade.XYWH(self.center_x, self.center_y +
-                            self.height / 2 + 10, self.health_bar_width, 6),
-                arcade.color.BLACK, border_width=1
-            )
+        self.animation_timer += delta_time
+        if self.animation_timer >= self.animation_speed:
+            self.animation_timer = 0
+            self.current_frame = (self.current_frame + 1) % len(self.textures)
+            base_tex = self.textures[self.current_frame]
+            if self._facing_right:
+                self.texture = base_tex
+            else:
+                self.texture = base_tex.flip_horizontally()
 
     def take_damage(self, damage):
-        self.stats.health -= damage
-        return self.stats.health <= 0
+        self.health -= damage
+        return self.health <= 0
 
     def on_death(self):
-        return self.stats.points
+        return self.points
+
+    def draw_health_bar(self):
+        if self.health <= 0:
+            return
+        health_percent = self.health / self.max_health
+        bar_width = 40
+        current_width = bar_width * health_percent
+        bar_x = self.center_x
+        bar_y = self.center_y + self.custom_height / 2 + 10
+
+        arcade.draw_rect_filled(
+            arcade.XYWH(bar_x, bar_y, bar_width, 6),
+            arcade.color.DARK_GRAY
+        )
+        health_color = arcade.color.RED
+        if health_percent > 0.75:
+            health_color = arcade.color.GREEN
+        elif health_percent > 0.5:
+            health_color = arcade.color.ORANGE
+
+        arcade.draw_rect_filled(
+            arcade.XYWH(bar_x, bar_y, current_width, 6),
+            health_color
+        )
+        arcade.draw_rect_outline(
+            arcade.XYWH(bar_x, bar_y, bar_width, 6),
+            arcade.color.BLACK, 1
+        )

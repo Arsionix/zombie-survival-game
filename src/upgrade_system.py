@@ -1,7 +1,3 @@
-"""
-Система улучшений характеристик игрока
-"""
-
 import arcade
 from .constants import SCREEN_HEIGHT
 
@@ -115,10 +111,9 @@ class UpgradeSystem:
             print(f"Скорость увеличена до {self.player.speed}")
 
         elif upgrade_type == 'damage':
-            if not hasattr(self.player, 'damage'):
-                self.player.damage = 1.0
-            self.player.damage *= (1 + bonus_pct / 100)
-            print(f"Урон увеличен до x{self.player.damage:.2f}")
+            self.player.damage_multiplier *= (1 + bonus_pct / 100)
+            print(
+                f"Множитель урона увеличен до x{self.player.damage_multiplier:.2f}")
 
         elif upgrade_type == 'weapon':
             if not hasattr(self.player, 'fire_rate'):
@@ -132,9 +127,9 @@ class UpgradeSystem:
     def get_active_upgrades(self):
         active_upgrades = {}
         for upgrade_type, level in self.active_upgrades.items():
-        if level > 0:
-            active_upgrades[upgrade_type] = level
-            
+            if level > 0:
+                active_upgrades[upgrade_type] = level
+
         return active_upgrades
 
     def draw_active_upgrades(self, x, y):

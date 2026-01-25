@@ -12,9 +12,6 @@ class FaceDirection(enum.Enum):
 class Player(arcade.Sprite):
 
     def __init__(self):
-        """
-        Инициализирует игрока с начальными характеристиками и загружает текстуры.
-        """
         super().__init__()
 
         self.speed = 200
@@ -23,7 +20,7 @@ class Player(arcade.Sprite):
         self.health_bar_width = 50
 
         self.damage_multiplier = 1.0
-        self.fire_rate = 1.0
+        self.fire_rate = 2.0
         self.shoot_cooldown = 0.0
 
         self.idle_texture = arcade.load_texture(
@@ -47,7 +44,6 @@ class Player(arcade.Sprite):
         self.center_y = SCREEN_HEIGHT // 2
 
     def draw_health_bar(self):
-        """Рисует полоску здоровья над игроком."""
         if self.health > 0:
             health_percent = self.health / self.max_health
             current_width = self.health_bar_width * health_percent
@@ -77,7 +73,6 @@ class Player(arcade.Sprite):
             )
 
     def update_animation(self, delta_time: float = 1/60):
-        """Обновляет анимацию игрока в зависимости от движения."""
         if self.is_walking:
             self.texture_change_time += delta_time
             if self.texture_change_time >= self.texture_change_delay:
@@ -98,13 +93,6 @@ class Player(arcade.Sprite):
                 self.texture = self.idle_texture.flip_horizontally()
 
     def update(self, delta_time, keys_pressed):
-        """
-        Обновляет позицию и состояние игрока.
-
-        Параметры:
-            delta_time: Время с предыдущего обновления
-            keys_pressed: Множество нажатых клавиш
-        """
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= delta_time
 

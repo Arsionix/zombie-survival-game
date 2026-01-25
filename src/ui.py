@@ -11,9 +11,6 @@ class MenuView(arcade.View):
         self.setup()
 
     def setup(self):
-        """
-        Настраивает элементы интерфейса главного меню.
-        """
         self.background_texture = arcade.load_texture(
             "assets/images/ui/menu_background.jpg")
 

@@ -8,14 +8,11 @@ from .ui import GameOverView, MenuView, SettingView
 
 
 class GameView(arcade.View):
-    """Основной игровой экран, управляющий всем игровым процессом."""
-
     def __init__(self):
         super().__init__()
         self.setup()
 
     def setup(self):
-        """Инициализирует все игровые объекты и настройки."""
         self.player_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
 
@@ -33,11 +30,9 @@ class GameView(arcade.View):
         self.keys_pressed = set()
 
     def on_show(self):
-        """Вызывается при показе этого View."""
         pass
 
     def on_draw(self):
-        """Отрисовывает все игровые объекты на экране."""
         self.clear()
 
         arcade.draw_texture_rect(
@@ -59,12 +54,6 @@ class GameView(arcade.View):
         self.player.draw_health_bar()
 
     def on_update(self, delta_time):
-        """
-        Обновляет состояние всех игровых объектов.
-
-        Параметры:
-            delta_time: Время, прошедшее с предыдущего обновления
-        """
         self.player_list.update(delta_time, self.keys_pressed)
         self.bullet_list.update(delta_time)
 
@@ -78,49 +67,36 @@ class GameView(arcade.View):
         if self.player_hit_cooldown > 0:
             self.player_hit_cooldown -= delta_time
 
+        if hasattr(self.player, 'shoot_cooldown') and self.player.shoot_cooldown > 0:
+            self.player.shoot_cooldown -= delta_time
+
         if self.player.health <= 0:
             self.game_over()
 
     def check_collisions(self):
-        """Проверяет все столкновения между игроком, пулями и зомби."""
         for bullet in self.bullet_list[:]:
-            hit_list = []
-            for zombie in self.wave_manager.zombies[:]:
-                if (abs(bullet.center_x - zombie.center_x) < 30 and
-                        abs(bullet.center_y - zombie.center_y) < 30):
-                    hit_list.append(zombie)
-
+            hit_list = arcade.check_for_collision_with_list(
+                bullet, self.wave_manager.zombies)
             if hit_list:
                 bullet.remove_from_sprite_lists()
                 arcade.play_sound(self.hit_sound, volume=0.3)
-
                 for zombie in hit_list:
                     if zombie.take_damage(bullet.damage):
                         self.wave_manager.kill_zombie(zombie)
 
         if self.player_hit_cooldown <= 0:
-            total_damage = 0
-
-            for zombie in self.wave_manager.zombies:
-                distance = ((self.player.center_x - zombie.center_x) ** 2 +
-                            (self.player.center_y - zombie.center_y) ** 2) ** 0.5
-                collision_distance = max(
-                    self.player.width, self.player.height) / 2 + 20
-
-                if distance < collision_distance:
-                    total_damage += zombie.stats.damage
-
-            if total_damage > 0:
+            hit_list = arcade.check_for_collision_with_list(
+                self.player, self.wave_manager.zombies)
+            if hit_list:
+                total_damage = sum(zombie.damage for zombie in hit_list)
                 self.player.health -= total_damage
                 self.player_hit_cooldown = 1.0
-
                 self.wave_manager.wave_stats["total_damage"] = (
                     self.wave_manager.wave_stats.get(
                         "total_damage", 0) + total_damage
                 )
 
     def game_over(self):
-        """Завершает игру и показывает экран окончания."""
         game_over_view = GameOverView()
 
         game_over_view.final_score = self.wave_manager.upgrade_system.get_points()
@@ -129,15 +105,6 @@ class GameView(arcade.View):
         self.window.show_view(game_over_view)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        """
-        Обрабатывает нажатия кнопок мыши.
-
-        Параметры:
-            x: Координата X клика
-            y: Координата Y клика
-            button: Нажатая кнопка мыши
-            modifiers: Модификаторы клавиш
-        """
         if button == arcade.MOUSE_BUTTON_LEFT:
             if (hasattr(self, 'wave_manager') and self.wave_manager and
                 hasattr(self.wave_manager, 'show_upgrade_menu') and
@@ -145,24 +112,20 @@ class GameView(arcade.View):
 
                 self.wave_manager.on_mouse_press(x, y, button)
             else:
-                bullet = Bullet(
-                    self.player.center_x,
-                    self.player.center_y,
-                    x,
-                    y,
-                    self.player
-                )
-                self.bullet_list.append(bullet)
-                arcade.play_sound(self.shoot_sound)
+                fire_delay = 1.0 / self.player.fire_rate
+                if self.player.shoot_cooldown <= 0:
+                    bullet = Bullet(
+                        self.player.center_x,
+                        self.player.center_y,
+                        x,
+                        y,
+                        self.player
+                    )
+                    self.bullet_list.append(bullet)
+                    arcade.play_sound(self.shoot_sound)
+                    self.player.shoot_cooldown = fire_delay
 
     def on_key_press(self, key, modifiers):
-        """
-        Обрабатывает нажатия клавиш клавиатуры.
-
-        Параметры:
-            key: Код нажатой клавиши
-            modifiers: Модификаторы клавиш
-        """
         self.keys_pressed.add(key)
 
         if key == arcade.key.SPACE:
@@ -185,12 +148,5 @@ class GameView(arcade.View):
             return
 
     def on_key_release(self, key, modifiers):
-        """
-        Обрабатывает отпускание клавиш клавиатуры.
-
-        Параметры:
-            key: Код отпущенной клавиши
-            modifiers: Модификаторы клавиш
-        """
         if key in self.keys_pressed:
             self.keys_pressed.remove(key)

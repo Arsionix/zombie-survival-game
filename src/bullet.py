@@ -4,20 +4,7 @@ from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
 class Bullet(arcade.Sprite):
-
     def __init__(self, start_x, start_y, target_x, target_y, player, speed=800, base_damage=10):
-        """
-        Инициализирует пулю с заданными параметрами.
-
-        Параметры:
-            start_x: Начальная координата X
-            start_y: Начальная координата Y
-            target_x: Целевая координата X (курсор мыши)
-            target_y: Целевая координата Y (курсор мыши)
-            player: Объект игрока для расчета урона
-            speed: Скорость пули
-            base_damage: Базовый урон пули
-        """
         super().__init__()
         self.texture = arcade.load_texture(
             ":resources:/images/space_shooter/laserBlue01.png")
@@ -36,12 +23,6 @@ class Bullet(arcade.Sprite):
         self.angle = math.degrees(-angle)
 
     def update(self, delta_time):
-        """
-        Обновляет позицию пули и удаляет ее при выходе за границы экрана.
-
-        Параметры:
-            delta_time: Время, прошедшее с предыдущего обновления
-        """
         if (self.center_x < 0 or self.center_x > SCREEN_WIDTH or
                 self.center_y < 0 or self.center_y > SCREEN_HEIGHT):
             self.remove_from_sprite_lists()
