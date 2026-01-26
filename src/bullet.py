@@ -1,31 +1,32 @@
 import arcade
 import math
-from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
 class Bullet(arcade.Sprite):
-    def __init__(self, start_x, start_y, target_x, target_y, player, speed=800, base_damage=10):
-        super().__init__()
-        self.texture = arcade.load_texture(
-            ":resources:/images/space_shooter/laserBlue01.png")
+    def __init__(self, start_x, start_y, target_x, target_y, player, speed=800, base_damage=25, texture_path=None):
+        super().__init__(texture_path, scale=0.2)
+
         self.center_x = start_x
         self.center_y = start_y
-        self.speed = speed
 
-        self.damage = base_damage * player.damage_multiplier
-
-        x_diff = target_x - start_x
-        y_diff = target_y - start_y
-        angle = math.atan2(y_diff, x_diff)
+        dx = target_x - start_x
+        dy = target_y - start_y
+        angle = math.atan2(dy, dx)
+        self.angle = math.degrees(angle) + 90
 
         self.change_x = math.cos(angle) * speed
         self.change_y = math.sin(angle) * speed
-        self.angle = math.degrees(-angle)
+
+        self.damage = base_damage * player.damage_multiplier
+
+        self.max_distance = 1000
+        self.distance_traveled = 0
 
     def update(self, delta_time):
-        if (self.center_x < 0 or self.center_x > SCREEN_WIDTH or
-                self.center_y < 0 or self.center_y > SCREEN_HEIGHT):
-            self.remove_from_sprite_lists()
-
         self.center_x += self.change_x * delta_time
         self.center_y += self.change_y * delta_time
+        self.distance_traveled += math.hypot(
+            self.change_x * delta_time, self.change_y * delta_time)
+
+        if self.distance_traveled > self.max_distance:
+            self.remove_from_sprite_lists()

@@ -1,5 +1,6 @@
 import arcade
 from .constants import SCREEN_HEIGHT
+from .weapon import Weapon
 
 
 class UpgradeSystem:
@@ -11,7 +12,7 @@ class UpgradeSystem:
             'health': ('Здоровье', [(20, 100), (40, 250), (60, 500)]),
             'speed': ('Скорость', [(10, 150), (20, 300), (30, 600)]),
             'damage': ('Урон', [(15, 200), (30, 400), (50, 800)]),
-            'weapon': ('Оружие', [(20, 300), (40, 600), (60, 1200)]),
+            'weapon': ('Оружие', [(0, 300), (0, 600), (0, 1200)]),
             'special': ('Особые способности', [(1, 500), (2, 1000), (3, 2000)])
         }
 
@@ -116,10 +117,14 @@ class UpgradeSystem:
                 f"Множитель урона увеличен до x{self.player.damage_multiplier:.2f}")
 
         elif upgrade_type == 'weapon':
-            if not hasattr(self.player, 'fire_rate'):
-                self.player.fire_rate = 1.0
-            self.player.fire_rate *= (1 + bonus_pct / 100)
-            print(f"Скорострельность увеличена до {self.player.fire_rate}")
+            level = self.active_upgrades[upgrade_type]
+            if level == 1:
+                self.player.current_weapon = Weapon("shotgun")
+            elif level == 2:
+                self.player.current_weapon = Weapon("smg")
+            elif level == 3:
+                self.player.current_weapon = Weapon("sniper")
+            print(f"Оружие изменено на: {self.player.current_weapon.name}")
 
         elif upgrade_type == 'special':
             print("Особая способность разблокирована!")

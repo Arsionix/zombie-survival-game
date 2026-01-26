@@ -2,6 +2,7 @@ import arcade
 import math
 import enum
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from .weapon import Weapon
 
 
 class FaceDirection(enum.Enum):
@@ -19,9 +20,9 @@ class Player(arcade.Sprite):
         self.health = self.max_health
         self.health_bar_width = 50
 
+        self.current_weapon = Weapon("shotgun")
         self.damage_multiplier = 1.0
         self.fire_rate = 2.0
-        self.shoot_cooldown = 0.0
 
         self.idle_texture = arcade.load_texture(
             "assets/images/player/player_idle.png")
@@ -93,9 +94,6 @@ class Player(arcade.Sprite):
                 self.texture = self.idle_texture.flip_horizontally()
 
     def update(self, delta_time, keys_pressed):
-        if self.shoot_cooldown > 0:
-            self.shoot_cooldown -= delta_time
-
         dx, dy = 0, 0
         if arcade.key.LEFT in keys_pressed or arcade.key.A in keys_pressed:
             dx -= self.speed * delta_time

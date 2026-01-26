@@ -183,3 +183,21 @@ class WaveManager:
                              10, SCREEN_HEIGHT - 30, arcade.color.WHITE, 18, font_name="Impact")
             arcade.draw_text(f"Зомби: {self.zombies_spawned - self.zombies_killed}/{self.zombies_spawned}",
                              10, SCREEN_HEIGHT - 60, arcade.color.WHITE, 16, font_name="Impact")
+
+            weapon = self.player.current_weapon
+            ammo_text = f"Патроны: {weapon.current_ammo} / {weapon.magazine_size}"
+
+            if weapon.current_ammo == 0:
+                color = arcade.color.RED
+            elif weapon.current_ammo <= weapon.magazine_size * 0.3:
+                color = arcade.color.YELLOW
+            else:
+                color = arcade.color.WHITE
+
+            arcade.draw_text(
+                ammo_text,
+                10, SCREEN_HEIGHT - 90,
+                color,
+                18,
+                font_name="Impact"
+            )

@@ -64,11 +64,21 @@ class GameView(arcade.View):
 
         self.check_collisions()
 
+        weapon = self.player.current_weapon
+        if weapon.is_reloading:
+            weapon.reload_cooldown -= delta_time
+            if weapon.reload_cooldown <= 0:
+                weapon.is_reloading = False
+                weapon.current_ammo = weapon.magazine_size
+
+        if weapon.cooldown > 0:
+            weapon.cooldown -= delta_time
+
         if self.player_hit_cooldown > 0:
             self.player_hit_cooldown -= delta_time
 
-        if hasattr(self.player, 'shoot_cooldown') and self.player.shoot_cooldown > 0:
-            self.player.shoot_cooldown -= delta_time
+        if self.wave_manager.wave_active:
+            weapon.auto_reload_if_empty()
 
         if self.player.health <= 0:
             self.game_over()
@@ -112,18 +122,9 @@ class GameView(arcade.View):
 
                 self.wave_manager.on_mouse_press(x, y, button)
             else:
-                fire_delay = 1.0 / self.player.fire_rate
-                if self.player.shoot_cooldown <= 0:
-                    bullet = Bullet(
-                        self.player.center_x,
-                        self.player.center_y,
-                        x,
-                        y,
-                        self.player
-                    )
-                    self.bullet_list.append(bullet)
-                    arcade.play_sound(self.shoot_sound)
-                    self.player.shoot_cooldown = fire_delay
+                if not self.player.current_weapon.is_reloading:
+                    self.player.current_weapon.shoot(
+                        self.player, x, y, self.bullet_list)
 
     def on_key_press(self, key, modifiers):
         self.keys_pressed.add(key)
@@ -138,6 +139,10 @@ class GameView(arcade.View):
                 self.wave_manager.show_player = True
                 self.wave_manager.wave_timer = self.wave_manager.wave_start_delay
                 return
+
+        if key == arcade.key.R:
+            if self.wave_manager.wave_active:
+                self.player.current_weapon.start_reload()
 
         if key == arcade.key.ESCAPE:
             self.keys_pressed.clear()
