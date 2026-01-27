@@ -24,6 +24,8 @@ class GameView(arcade.View):
         self.wave_manager.current_wave = 0
         self.wave_manager.start_next_wave()
 
+        self.player.upgrade_system = self.wave_manager.upgrade_system
+
         self.shoot_sound = arcade.load_sound(":resources:/sounds/laser1.wav")
         self.hit_sound = arcade.load_sound(":resources:/sounds/hit3.wav")
 
@@ -52,6 +54,7 @@ class GameView(arcade.View):
         self.bullet_list.draw()
 
         self.player.draw_health_bar()
+        self.player.draw_shield()
 
     def on_update(self, delta_time):
         self.player_list.update(delta_time, self.keys_pressed)
@@ -63,6 +66,16 @@ class GameView(arcade.View):
         self.player_list.update_animation(delta_time)
 
         self.check_collisions()
+
+        self.player.update_shield(delta_time)
+
+        if self.player_hit_cooldown <= 0 and not self.player.shield_active:
+            hit_list = arcade.check_for_collision_with_list(
+                self.player, self.wave_manager.zombies)
+            if hit_list:
+                total_damage = sum(zombie.damage for zombie in hit_list)
+                self.player.health -= total_damage
+                self.player_hit_cooldown = 1.0
 
         weapon = self.player.current_weapon
         if weapon.is_reloading:
@@ -94,7 +107,7 @@ class GameView(arcade.View):
                     if zombie.take_damage(bullet.damage):
                         self.wave_manager.kill_zombie(zombie)
 
-        if self.player_hit_cooldown <= 0:
+        if self.player_hit_cooldown <= 0 and not self.player.shield_active:
             hit_list = arcade.check_for_collision_with_list(
                 self.player, self.wave_manager.zombies)
             if hit_list:
@@ -139,6 +152,10 @@ class GameView(arcade.View):
                 self.wave_manager.show_player = True
                 self.wave_manager.wave_timer = self.wave_manager.wave_start_delay
                 return
+
+        if key == arcade.key.Q:
+            if self.wave_manager.wave_active:
+                self.player.activate_shield()
 
         if key == arcade.key.R:
             if self.wave_manager.wave_active:

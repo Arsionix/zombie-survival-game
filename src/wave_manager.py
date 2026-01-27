@@ -201,3 +201,24 @@ class WaveManager:
                 18,
                 font_name="Impact"
             )
+
+            if weapon.is_reloading:
+                arcade.draw_text(
+                    "ПЕРЕЗАРЯДКА...",
+                    10, SCREEN_HEIGHT - 120,
+                    arcade.color.YELLOW,
+                    16,
+                    font_name="Impact"
+                )
+
+            special_level = self.upgrade_system.active_upgrades.get(
+                'special', 0)
+            if special_level >= 1 and self.player.shield_cooldown > 0:
+                cooldown_text = f"ЩИТ: {self.player.shield_cooldown:.0f}"
+                arcade.draw_text(
+                    cooldown_text,
+                    10, 90,
+                    arcade.color.RED,
+                    14,
+                    font_name="Impact"
+                )

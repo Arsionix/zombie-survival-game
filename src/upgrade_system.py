@@ -127,7 +127,13 @@ class UpgradeSystem:
             print(f"Оружие изменено на: {self.player.current_weapon.name}")
 
         elif upgrade_type == 'special':
-            print("Особая способность разблокирована!")
+            level = self.active_upgrades[upgrade_type]
+            if level == 1:
+                print("Разблокирована способность: Щит (Q)")
+            elif level == 2:
+                self.player.max_shield_cooldown = 15.0
+            elif level == 3:
+                self.player.shield_duration = 5.0
 
     def get_active_upgrades(self):
         active_upgrades = {}

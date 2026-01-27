@@ -1,6 +1,7 @@
 import arcade
 import math
 import enum
+import time
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from .weapon import Weapon
 
@@ -20,9 +21,15 @@ class Player(arcade.Sprite):
         self.health = self.max_health
         self.health_bar_width = 50
 
-        self.current_weapon = Weapon("shotgun")
+        self.current_weapon = Weapon("pistol")
         self.damage_multiplier = 1.0
         self.fire_rate = 2.0
+
+        self.shield_active = False
+        self.shield_duration = 0.0
+        self.shield_cooldown = 0.0
+        self.max_shield_cooldown = 20.0
+        self.shield_sound = arcade.load_sound(":resources:/sounds/secret4.wav")
 
         self.idle_texture = arcade.load_texture(
             "assets/images/player/player_idle.png")
@@ -43,6 +50,41 @@ class Player(arcade.Sprite):
 
         self.center_x = SCREEN_WIDTH // 2
         self.center_y = SCREEN_HEIGHT // 2
+
+    def activate_shield(self):
+        if not hasattr(self, 'upgrade_system'):
+            return False
+
+        special_level = self.upgrade_system.active_upgrades.get('special', 0)
+        if special_level < 1:
+            return False
+
+        if self.shield_cooldown <= 0:
+            self.shield_active = True
+            self.shield_duration = 3.0
+            self.shield_cooldown = self.max_shield_cooldown
+            arcade.play_sound(self.shield_sound)
+            return True
+        return False
+
+    def update_shield(self, delta_time):
+        if self.shield_active:
+            self.shield_duration -= delta_time
+            if self.shield_duration <= 0:
+                self.shield_active = False
+
+        if self.shield_cooldown > 0:
+            self.shield_cooldown -= delta_time
+
+    def draw_shield(self):
+        if self.shield_active:
+            alpha = int(128 + 127 * math.sin(time.time() * 10))
+            arcade.draw_circle_outline(
+                self.center_x, self.center_y,
+                self.width / 2 + 15,
+                (0, 100, 255, alpha),
+                border_width=3
+            )
 
     def draw_health_bar(self):
         if self.health > 0:
