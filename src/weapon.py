@@ -1,6 +1,7 @@
 import arcade
 import math
 from .bullet import Bullet
+from .utils import play_sound_with_volume
 
 
 class Weapon:
@@ -83,7 +84,7 @@ class Weapon:
         if not self.is_reloading and self.current_ammo < self.magazine_size:
             self.is_reloading = True
             self.reload_cooldown = self.reload_duration
-            arcade.play_sound(self.reload_sound)
+            play_sound_with_volume(self.reload_sound)
 
     def auto_reload_if_empty(self):
         if self.current_ammo <= 0 and not self.is_reloading:
@@ -129,5 +130,5 @@ class Weapon:
             )
             bullet_list.append(bullet)
 
-        arcade.play_sound(self.sound)
+        play_sound_with_volume(self.sound)
         return True

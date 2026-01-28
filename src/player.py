@@ -4,6 +4,7 @@ import enum
 import time
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from .weapon import Weapon
+from .utils import play_sound_with_volume
 
 
 class FaceDirection(enum.Enum):
@@ -63,7 +64,7 @@ class Player(arcade.Sprite):
             self.shield_active = True
             self.shield_duration = 3.0
             self.shield_cooldown = self.max_shield_cooldown
-            arcade.play_sound(self.shield_sound)
+            play_sound_with_volume(self.shield_sound)
             return True
         return False
 

@@ -1,5 +1,7 @@
 import arcade
 import arcade.gui
+import os
+import json
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
@@ -142,6 +144,13 @@ class SettingView(arcade.View):
     def setup(self):
         self.uimanager.clear()
 
+        try:
+            with open("settings.json", "r") as f:
+                settings = json.load(f)
+                self.current_volume = settings.get("volume", 0.5)
+        except (FileNotFoundError, json.JSONDecodeError):
+            self.current_volume = 0.5
+
         button_style = {
             "normal": arcade.gui.UIFlatButton.UIStyle(
                 font_size=16,
@@ -169,8 +178,23 @@ class SettingView(arcade.View):
             )
         }
 
-        volume_slider = arcade.gui.UISlider(value=50, width=400, height=20, x=(
-            SCREEN_WIDTH // 2) - 150, y=(SCREEN_HEIGHT // 2) + 150)
+        volume_slider = arcade.gui.UISlider(
+            value=self.current_volume * 100,
+            width=400,
+            height=20,
+            x=(SCREEN_WIDTH // 2) - 150,
+            y=(SCREEN_HEIGHT // 2) + 150
+        )
+
+        @volume_slider.event
+        def on_change(event):
+            self.current_volume = event.new_value / 100.0
+
+            test_volume = max(0.1, self.current_volume)
+            test_sound = arcade.load_sound(":resources:/sounds/laser1.wav")
+            arcade.play_sound(test_sound, volume=test_volume)
+
+        self.volume_slider = volume_slider
         self.uimanager.add(volume_slider)
 
         back_button = arcade.gui.UIFlatButton(
@@ -188,6 +212,8 @@ class SettingView(arcade.View):
         self.window.show_view(self.previous_view)
 
     def on_save_click(self, event):
+        with open("settings.json", "w") as f:
+            json.dump({"volume": self.current_volume}, f)
         print("Настройки сохранены!")
 
     def on_show_view(self):
@@ -206,11 +232,143 @@ class SettingView(arcade.View):
         self.uimanager.draw()
 
 
+class InGameSettingsView(arcade.View):
+    def __init__(self, game_view):
+        super().__init__()
+        self.game_view = game_view
+        self.uimanager = arcade.gui.UIManager()
+        self.current_volume = 0.5
+        self.load_volume()
+        self.setup()
+
+    def load_volume(self):
+        try:
+            with open("settings.json", "r") as f:
+                settings = json.load(f)
+                self.current_volume = settings.get("volume", 0.5)
+        except (FileNotFoundError, json.JSONDecodeError):
+            self.current_volume = 0.5
+
+    def setup(self):
+        self.uimanager.clear()
+
+        button_style = {
+            "normal": arcade.gui.UIFlatButton.UIStyle(
+                font_size=16,
+                font_name=("Courier New", "monospace"),
+                font_color=arcade.color.LIGHT_GRAY,
+                bg=arcade.color.BROWN,
+                border=arcade.color.DARK_RED,
+                border_width=2
+            ),
+            "hover": arcade.gui.UIFlatButton.UIStyle(
+                font_size=17,
+                font_name=("Courier New", "monospace"),
+                font_color=arcade.color.BLACK,
+                bg=arcade.color.DARK_RED,
+                border=arcade.color.RED,
+                border_width=2
+            ),
+            "press": arcade.gui.UIFlatButton.UIStyle(
+                font_size=15,
+                font_name=("Courier New", "monospace"),
+                font_color=arcade.color.BLACK,
+                bg=arcade.color.DARK_RED,
+                border=arcade.color.BLACK,
+                border_width=2
+            )
+        }
+
+        volume_slider = arcade.gui.UISlider(
+            value=self.current_volume * 100,
+            width=300,
+            height=20,
+            x=(SCREEN_WIDTH // 2) - 150,
+            y=(SCREEN_HEIGHT // 2) + 50
+        )
+
+        @volume_slider.event
+        def on_change(event):
+            self.current_volume = event.new_value / 100.0
+
+            test_volume = max(0.1, self.current_volume)
+            test_sound = arcade.load_sound(":resources:/sounds/laser1.wav")
+            arcade.play_sound(test_sound, volume=test_volume)
+
+        continue_button = arcade.gui.UIFlatButton(
+            text="ПРОДОЛЖИТЬ", width=150, height=40, style=button_style,
+            x=(SCREEN_WIDTH // 2) - 180,
+            y=(SCREEN_HEIGHT // 2) - 50
+        )
+        continue_button.on_click = self.on_continue_click
+
+        save_button = arcade.gui.UIFlatButton(
+            text="СОХРАНИТЬ", width=150, height=40, style=button_style,
+            x=(SCREEN_WIDTH // 2) + 30,
+            y=(SCREEN_HEIGHT // 2) - 50
+        )
+        save_button.on_click = self.on_save_click
+
+        self.uimanager.add(volume_slider)
+        self.uimanager.add(continue_button)
+        self.uimanager.add(save_button)
+
+    def on_continue_click(self, event):
+        self.uimanager.disable()
+        self.window.show_view(self.game_view)
+
+    def on_save_click(self, event):
+        with open("settings.json", "w") as f:
+            json.dump({"volume": self.current_volume}, f)
+        print("Громкость сохранена!")
+
+    def on_show_view(self):
+        self.uimanager.enable()
+
+    def on_hide_view(self):
+        self.uimanager.disable()
+
+    def on_draw(self):
+        arcade.draw_rect_filled(
+            arcade.rect.XYWH(SCREEN_WIDTH // 2, SCREEN_HEIGHT //
+                             2, SCREEN_WIDTH, SCREEN_HEIGHT),
+            (0, 0, 0, 0)
+        )
+
+        arcade.draw_text(
+            "НАСТРОЙКИ",
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100,
+            arcade.color.WHITE, 24, anchor_x="center", font_name="Impact"
+        )
+
+        arcade.draw_text(
+            "Громкость:",
+            SCREEN_WIDTH // 2 - 160, SCREEN_HEIGHT // 2 + 75,
+            arcade.color.WHITE, 16, anchor_x="left"
+        )
+
+        self.uimanager.draw()
+
+
 class RecordsView(arcade.View):
     def __init__(self):
         super().__init__()
         self.uimanager = arcade.gui.UIManager()
+        self.records = {"max_wave": 0, "max_score": 0}
+        self.load_records()
         self.setup()
+
+    def load_records(self):
+        """Загружает рекорды из файла."""
+        records_file = "records.json"
+        if os.path.exists(records_file):
+            try:
+                with open(records_file, "r", encoding="utf-8") as f:
+                    self.records = json.load(f)
+            except (json.JSONDecodeError, KeyError):
+                self.records = {"max_wave": 0, "max_score": 0}
+        else:
+            self.records = {"max_wave": 0, "max_score": 0}
 
     def setup(self):
         self.uimanager.clear()
@@ -268,9 +426,17 @@ class RecordsView(arcade.View):
         arcade.draw_text("РЕКОРДЫ", self.window.width // 2, self.window.height - 100,
                          arcade.color.WHITE, font_size=40, anchor_x="center", font_name="Impact")
 
-        arcade.draw_text("Рекорды пока не доступны",
-                         self.window.width // 2, self.window.height // 2,
-                         arcade.color.LIGHT_GRAY, font_size=24, anchor_x="center", font_name="Impact")
+        if self.records["max_wave"] > 0:
+            arcade.draw_text(f"Максимальная волна: {self.records['max_wave']}",
+                             self.window.width // 2, self.window.height // 2 + 30,
+                             arcade.color.LIGHT_GREEN, font_size=24, anchor_x="center", font_name="Impact")
+            arcade.draw_text(f"Максимальные очки: {self.records['max_score']}",
+                             self.window.width // 2, self.window.height // 2 - 10,
+                             arcade.color.LIGHT_GREEN, font_size=24, anchor_x="center", font_name="Impact")
+        else:
+            arcade.draw_text("Рекорды пока не установлены",
+                             self.window.width // 2, self.window.height // 2,
+                             arcade.color.LIGHT_GRAY, font_size=24, anchor_x="center", font_name="Impact")
 
         self.uimanager.draw()
 
@@ -281,6 +447,28 @@ class GameOverView(arcade.View):
         self.background_texture = None
         self.uimanager = arcade.gui.UIManager()
         self.setup()
+
+    def save_records(self, wave, score):
+        """Сохраняет рекорды в файл."""
+        records_file = "records.json"
+
+        if os.path.exists(records_file):
+            try:
+                with open(records_file, "r", encoding="utf-8") as f:
+                    records = json.load(f)
+            except (json.JSONDecodeError, KeyError):
+                records = {"max_wave": 0, "max_score": 0}
+        else:
+            records = {"max_wave": 0, "max_score": 0}
+
+        if wave > records["max_wave"]:
+            records["max_wave"] = wave
+            records["max_score"] = score
+        elif wave == records["max_wave"] and score > records["max_score"]:
+            records["max_score"] = score
+
+        with open(records_file, "w", encoding="utf-8") as f:
+            json.dump(records, f, ensure_ascii=False, indent=2)
 
     def setup(self):
         button_style = {

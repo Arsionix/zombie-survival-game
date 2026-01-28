@@ -4,7 +4,9 @@ from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from .player import Player
 from .bullet import Bullet
 from .wave_manager import WaveManager
-from .ui import GameOverView, MenuView, SettingView
+from .ui import GameOverView, InGameSettingsView
+from .records import load_records, save_records
+from .utils import play_sound_with_volume
 
 
 class GameView(arcade.View):
@@ -28,6 +30,8 @@ class GameView(arcade.View):
 
         self.shoot_sound = arcade.load_sound(":resources:/sounds/laser1.wav")
         self.hit_sound = arcade.load_sound(":resources:/sounds/hit3.wav")
+
+        self.records = load_records()
 
         self.keys_pressed = set()
 
@@ -102,7 +106,7 @@ class GameView(arcade.View):
                 bullet, self.wave_manager.zombies)
             if hit_list:
                 bullet.remove_from_sprite_lists()
-                arcade.play_sound(self.hit_sound, volume=0.3)
+                play_sound_with_volume(self.hit_sound)
                 for zombie in hit_list:
                     if zombie.take_damage(bullet.damage):
                         self.wave_manager.kill_zombie(zombie)
@@ -124,6 +128,9 @@ class GameView(arcade.View):
 
         game_over_view.final_score = self.wave_manager.upgrade_system.get_points()
         game_over_view.final_wave = self.wave_manager.current_wave
+
+        game_over_view.save_records(game_over_view.final_wave, game_over_view.final_score
+                                    )
 
         self.window.show_view(game_over_view)
 
@@ -161,13 +168,10 @@ class GameView(arcade.View):
             if self.wave_manager.wave_active:
                 self.player.current_weapon.start_reload()
 
-        if key == arcade.key.ESCAPE:
-            self.keys_pressed.clear()
-            if hasattr(self.wave_manager, 'uimanager'):
-                self.wave_manager.uimanager.disable()
-            menu_view = MenuView()
-            self.window.show_view(menu_view)
-            return
+        elif key == arcade.key.ESCAPE:
+            if self.wave_manager.wave_active:
+                settings_view = InGameSettingsView(self)
+                self.window.show_view(settings_view)
 
     def on_key_release(self, key, modifiers):
         if key in self.keys_pressed:

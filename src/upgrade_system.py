@@ -17,7 +17,7 @@ class UpgradeSystem:
         }
 
         self.active_upgrades = {typ: 0 for typ in self.upgrade_config}
-        self.max_active = 3
+        self.max_active = 5
         self.current_active_count = 0
 
     def draw_upgrade_menu(self, x, y):
